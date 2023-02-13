@@ -17,9 +17,6 @@
             "vite/client"
         ],
         "paths": {
-            "@/*": [
-                "src/renderer/*"
-            ],
             "@config/*": [
                 "config/*"
             ],
@@ -30,7 +27,7 @@
                 "src/main/*"
             ],
             "@store/*": [
-                "src/renderer/store/*"
+                "src/renderer/store/modules/*"
             ]
         },
         "typeRoots": [

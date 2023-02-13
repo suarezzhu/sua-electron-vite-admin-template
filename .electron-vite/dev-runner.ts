@@ -1,11 +1,9 @@
 process.env.NODE_ENV = 'development'
 
-// @ts-ignore
 import electron from 'electron';
 import chalk from 'chalk';
 import { join } from 'path';
 import { watch } from 'rollup';
-// @ts-ignore
 import Portfinder from 'portfinder';
 import config from '../config'
 import { say } from 'cfonts';
