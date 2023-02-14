@@ -1,26 +1,28 @@
 import { createApp } from 'vue'
+import pinia from '@renderer/store/index';
+import App from './App.vue';
+import router from './router';
+import { directive } from '@renderer/directive';
+import { i18n } from '@renderer/i18n/index';
+import other from '@renderer/utils/other';
+
+import "./init"
 
 import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css'
-import './styles/index.scss'
-import './permission'
-import App from './App.vue'
-import router from './router'
-import { errorHandler } from './error'
-import store from './store'
+import 'element-plus/dist/index.css';
+import '@renderer/theme/index.scss';
+import VueGridLayout from 'vue-grid-layout';
 
-import { i18n } from "./i18n"
+const app = createApp(App);
 
-import TitleBar from "./components/common/TitleBar.vue"
-const app = createApp(App)
-app.use(ElementPlus, { i18n: i18n.global.d })
-app.use(router)
-app.use(store)
-app.use(i18n)
-errorHandler(app)
+directive(app);
+other.elSvg(app);
 
-// 全局引入 TitleBar 组件
-app.component("TitleBar", TitleBar);
 
-app.mount("#app")
+app.use(pinia)
+    .use(router)
+    // @ts-ignore
+    .use(ElementPlus, { i18n: i18n.global.t })
+    .use(i18n)
+    .use(VueGridLayout).mount('#app');
 

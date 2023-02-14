@@ -21,18 +21,21 @@ class Update {
     })
 
     // 当开始检查更新的时候触发
+    // @ts-ignore
     autoUpdater.on('checking-for-update', (event, arg) => {
       console.log('开始检查更新')
       this.Message(this.mainWindow, 0)
     })
 
     // 发现可更新数据时
+    // @ts-ignore
     autoUpdater.on('update-available', (event, arg) => {
       console.log('有更新')
       this.Message(this.mainWindow, 1)
     })
 
     // 没有可更新数据时
+    // @ts-ignore
     autoUpdater.on('update-not-available', (event, arg) => {
       console.log('没有更新')
       this.Message(this.mainWindow, 2)
@@ -40,6 +43,7 @@ class Update {
 
     // 下载监听
     autoUpdater.on('download-progress', (progressObj) => {
+      // @ts-ignore
       this.Message(this.mainWindow, 3, progressObj)
     })
 

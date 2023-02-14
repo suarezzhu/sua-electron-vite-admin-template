@@ -1,35 +1,69 @@
-import axios from 'axios'
-import { ElMessage } from 'element-plus'
-const serves = axios.create({
-  baseURL: process.env.BASE_API,
-  timeout: 5000
-})
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { Session } from '@renderer/utils/storage';
+import qs from 'qs';
 
-// 设置请求发送之前的拦截器
-serves.interceptors.request.use(config => {
-  // 设置发送之前数据需要做什么处理
-  return config
-}, err => Promise.reject(err))
+// 配置新建一个 axios 实例
+const service: AxiosInstance = axios.create({
+	baseURL: import.meta.env.VITE_API_URL,
+	timeout: 50000,
+	headers: { 'Content-Type': 'application/json' },
+	paramsSerializer: {
+		serialize(params) {
+			return qs.stringify(params, { allowDots: true });
+		},
+	},
+});
 
-// 设置请求接受拦截器
-serves.interceptors.response.use(res => {
-  // 设置接受数据之后，做什么处理
-  if (res.data.code === 50000) {
-    ElMessage.error(res.data.data)
-  }
-  return res
-}, err => {
-  // 判断请求异常信息中是否含有超时timeout字符串
-  if (err.message.includes('timeout')) {
-    console.log('错误回调', err)
-    ElMessage.error('网络超时')
-  }
-  if (err.message.includes('Network Error')) {
-    console.log('错误回调', err)
-    ElMessage.error('服务端未启动，或网络连接错误')
-  }
-  return Promise.reject(err)
-})
+// 添加请求拦截器
 
-// 将serves抛出去
-export default serves
+service.interceptors.request.use(
+	// @ts-ignore
+	(config: AxiosRequestConfig) => {
+		// 在发送请求之前做些什么 token
+		if (Session.get('token')) {
+			config.headers!['Authorization'] = `${Session.get('token')}`;
+		}
+		return config;
+	},
+	(error) => {
+		// 对请求错误做些什么
+		return Promise.reject(error);
+	}
+);
+
+// 添加响应拦截器
+service.interceptors.response.use(
+	(response) => {
+		// 对响应数据做点什么
+		const res = response.data;
+		if (res.code && res.code !== 200) {
+			// `token` 过期或者账号已在别处登录
+			if (res.code === 401 || res.code === 4001) {
+				Session.clear(); // 清除浏览器全部临时缓存
+				window.location.href = '/'; // 去登录页
+				ElMessageBox.alert('你已被登出，请重新登录', '提示', {})
+					.then(() => {})
+					.catch(() => {});
+			}
+			return Promise.reject(service.interceptors.response);
+		} else {
+			return response.data;
+		}
+	},
+	(error) => {
+		// 对响应错误做点什么
+		if (error.message.indexOf('timeout') != -1) {
+			ElMessage.error('网络超时');
+		} else if (error.message == 'Network Error') {
+			ElMessage.error('网络连接错误');
+		} else {
+			if (error.response.data) ElMessage.error(error.response.statusText);
+			else ElMessage.error('接口路径找不到');
+		}
+		return Promise.reject(error);
+	}
+);
+
+// 导出 axios 实例
+export default service;
